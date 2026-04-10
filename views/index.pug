@@ -1,23 +1,46 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
-  ol
-  each val in todos
-    li
-      span= val.task + ' - '
-      if val.completed > 0
-        span Completed
-      else
-        span Not Completed
-      form(method='POST' action='/delete')
-        input(type='hidden', name='id', value=val.id)
-        button(type='submit') Delete
+  .container
+    h1= title
+    p Welcome to #{title}
+    if todos.length === 0
+      p(style='text-align:center; color:#888;') No tasks yet. Add one below!
+    else
+      ol
+      each val in todos
+        li(class=val.completed > 0 ? 'completed' : '')
+          div(style='display:flex; justify-content:space-between; align-items:center;')
+            span(style=val.completed > 0 ? 'text-decoration: line-through; color: gray;' : '')
+              = val.task
+
+            if val.completed > 0
+              span(style='font-size:14px; font-weight:bold; color:#2ecc71;') Completed
+            else
+              span(style='font-size:14px; font-weight:bold; color:#555;') Not Completed
+
+          div(style='margin-top:10px; display:flex; justify-content:space-between; align-items:center;')
+
+            form(method='POST', action='/edit', style='display:flex; gap:5px;')
+              input(type='hidden', name='id', value=val.id)
+              input(type='text', name='task', placeholder='Edit task...')
+              button(type='submit') Update
+
+            div
+              form(method='POST', action='/complete', style='display:inline;')
+                input(type='hidden', name='id', value=val.id)
+                if val.completed > 0
+                  button(type='submit') Undo
+                else
+                  button(type='submit') Complete
+
+              form(method='POST', action='/delete', style='display:inline;')
+                input(type='hidden', name='id', value=val.id)
+                button.delete-btn(type='submit') Delete
 
   hr
   h2 Add a new task
   form(method='POST' action='/create')
     label(for='task') Task:
-    input(type='text', name='task', id='task', required)
+    input(type='text', name='task', id='task', placeholder='Enter a task...', required)
     button(type='submit') Create Task

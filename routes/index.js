@@ -19,21 +19,23 @@ router.get('/', function(req, res, next){
 
 router.post('/create', function (req, res, next) {
     const { task } = req.body;
+    if (!task || task.trim() === "") {
+      return res.send("Task cannot be empty");
+    }
+
     try {
       req.db.query('INSERT INTO todos (task) VALUES (?);', [task], (err, results) => {
         if (err) {
           console.error('Error adding todo:', err);
           return res.status(500).send('Error adding todo');
         }
-        console.log('Todo added successfully:', results);
-        // Redirect to the home page after adding
         res.redirect('/');
       });
     } catch (error) {
       console.error('Error adding todo:', error);
       res.status(500).send('Error adding todo');
     }
-});
+  });
 
 router.post('/delete', function (req, res, next) {
     const { id } = req.body;
@@ -51,6 +53,52 @@ router.post('/delete', function (req, res, next) {
         console.error('Error deleting todo:', error);
         res.status(500).send('Error deleting todo:');
     }
+});
+
+router.post('/edit', function (req, res, next) {
+  let { id, task } = req.body;
+
+  if (!task || task.trim() === "") {
+    return res.redirect('/'); // just ignore empty edits
+  }
+
+  try {
+    req.db.query(
+      'UPDATE todos SET task = ? WHERE id = ?;',
+      [task, id],
+      (err, results) => {
+        if (err) {
+          console.error('Error updating todo:', err);
+          return res.status(500).send('Error updating todo');
+        }
+        res.redirect('/');
+      }
+    );
+  } catch (error) {
+    console.error('Error updating todo:', error);
+    res.status(500).send('Error updating todo');
+  }
+});
+
+router.post('/complete', function (req, res, next) {
+  const { id } = req.body;
+
+  try {
+    req.db.query(
+      'UPDATE todos SET completed = NOT completed WHERE id = ?;',
+      [id],
+      (err, results) => {
+        if (err) {
+          console.error('Error updating status:', err);
+          return res.status(500).send('Error updating status');
+        }
+        res.redirect('/');
+      }
+    );
+  } catch (error) {
+    console.error('Error updating status:', error);
+    res.status(500).send('Error updating status');
+  }
 });
 
 module.exports = router;
